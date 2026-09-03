@@ -1,6 +1,35 @@
+import json
+from pathlib import Path
+
 import streamlit as st
 
 st.set_page_config(page_title="쇼핑 리스트", page_icon="🛒", layout="centered")
+
+# --- 데이터 저장 (새로고침해도 유지되도록 파일에 보관) ---
+DATA_FILE = Path(__file__).parent / "shopping_list.json"
+
+
+def load_data() -> dict:
+    """저장된 쇼핑 리스트를 파일에서 불러온다. 없거나 손상됐으면 빈 리스트."""
+    try:
+        raw = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+        cart = raw.get("cart", [])
+        # 저장된 id 중 최대값 다음부터 새 id 부여
+        next_id = raw.get("next_id", max((i["id"] for i in cart), default=-1) + 1)
+        return {"cart": cart, "next_id": next_id}
+    except (FileNotFoundError, json.JSONDecodeError, KeyError, TypeError):
+        return {"cart": [], "next_id": 0}
+
+
+def save_data() -> None:
+    """현재 상태를 파일에 저장한다."""
+    payload = {
+        "cart": st.session_state["cart"],
+        "next_id": st.session_state["next_id"],
+    }
+    DATA_FILE.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 # --- 스타일 ---
 st.markdown(
@@ -37,9 +66,9 @@ st.markdown(
 # 속성 접근(st.session_state.items)으로 쓰면 안 되므로 대괄호 접근을 사용한다.
 if "cart" not in st.session_state:
     # 각 아이템: {"id": int, "name": str, "checked": bool}
-    st.session_state["cart"] = []
-if "next_id" not in st.session_state:
-    st.session_state["next_id"] = 0
+    saved = load_data()
+    st.session_state["cart"] = saved["cart"]
+    st.session_state["next_id"] = saved["next_id"]
 if "editing_id" not in st.session_state:
     st.session_state["editing_id"] = None
 
@@ -52,6 +81,7 @@ def add_item(name: str):
         {"id": st.session_state["next_id"], "name": name, "checked": False}
     )
     st.session_state["next_id"] += 1
+    save_data()
 
 
 def delete_item(item_id: int):
@@ -60,6 +90,7 @@ def delete_item(item_id: int):
     ]
     if st.session_state["editing_id"] == item_id:
         st.session_state["editing_id"] = None
+    save_data()
 
 
 def toggle_item(item_id: int):
@@ -67,6 +98,7 @@ def toggle_item(item_id: int):
         if i["id"] == item_id:
             i["checked"] = not i["checked"]
             break
+    save_data()
 
 
 def start_edit(item_id: int):
@@ -88,12 +120,14 @@ def update_item(item_id: int):
             i["name"] = new_name
             break
     st.session_state["editing_id"] = None
+    save_data()
 
 
 def clear_done():
     st.session_state["cart"] = [
         i for i in st.session_state["cart"] if not i["checked"]
     ]
+    save_data()
 
 
 # --- 헤더 ---
