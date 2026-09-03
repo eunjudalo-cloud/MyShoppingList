@@ -31,31 +31,160 @@ def save_data() -> None:
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-# --- 스타일 ---
+# --- 스타일 (아기자기 파스텔) ---
 st.markdown(
     """
     <style>
-    /* 본문 폭을 좁혀 리스트 앱처럼 보이게 */
+    @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap');
+
+    /* 배경: 크림색 + 은은한 물방울 무늬 */
+    .stApp {
+        background-color: #FFF9F3;
+        background-image: radial-gradient(#FFE1EC 1.4px, transparent 1.4px);
+        background-size: 24px 24px;
+    }
+
+    /* 본문 폭 */
     [data-testid="stMainBlockContainer"] {
-        max-width: 620px;
-        padding-top: 3rem;
-        padding-bottom: 4rem;
+        max-width: 580px;
+        padding-top: 2.5rem;
+        padding-bottom: 5rem;
     }
-    /* 버튼 라운드 처리 */
-    .stButton > button {
-        border-radius: 10px;
-        font-weight: 600;
+
+    /* 전체 글꼴 */
+    html, body, [class*="css"], .stMarkdown, input, textarea, button {
+        font-family: 'Gaegu', 'Jua', system-ui, sans-serif;
     }
-    /* 아이템 카드(테두리 컨테이너) */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        border-radius: 14px;
+
+    /* 제목 */
+    .cute-title {
+        font-family: 'Jua', sans-serif;
+        font-size: 2.4rem;
+        color: #FF7EA0;
+        text-align: center;
+        text-shadow: 2px 2px 0 #FFE1EC;
+        letter-spacing: 1px;
+        margin: 0.2rem 0 0.1rem;
     }
+    .cute-sub {
+        font-family: 'Gaegu', sans-serif;
+        font-size: 1.15rem;
+        color: #C08A72;
+        text-align: center;
+        margin-bottom: 1.2rem;
+    }
+
+    /* 추가 입력 폼: 점선 카드 */
+    [data-testid="stForm"] {
+        background: #FFFFFF;
+        border: 2.5px dashed #FFC2D4;
+        border-radius: 22px;
+        padding: 1rem 1.1rem 0.6rem;
+        box-shadow: 0 6px 0 #FFE8F0;
+    }
+
     /* 입력창 */
     .stTextInput input {
-        border-radius: 10px;
+        border-radius: 14px !important;
+        border: 2px solid #FFD6E2 !important;
+        background: #FFFDFC !important;
+        font-size: 1.15rem !important;
+        color: #6B5545 !important;
     }
-    /* 헤더 여백 축소 */
-    h1 { margin-bottom: 0.2rem; }
+    .stTextInput input::placeholder { color: #E0B7C4 !important; }
+    .stTextInput input:focus {
+        border-color: #FF8FB0 !important;
+        box-shadow: 0 0 0 3px #FFE8F0 !important;
+    }
+
+    /* 버튼 공통: 알약 모양 + 눌리는 느낌 */
+    .stButton > button, [data-testid="stForm"] button {
+        border-radius: 999px !important;
+        border: none !important;
+        font-family: 'Jua', sans-serif !important;
+        transition: transform .08s ease;
+    }
+    .stButton > button:active, [data-testid="stForm"] button:active {
+        transform: translateY(2px);
+    }
+    /* 강조 버튼 (추가 / 저장) */
+    [data-testid^="stBaseButton-primary"] {
+        background: #FF8FB0 !important;
+        color: #fff !important;
+        box-shadow: 0 4px 0 #E86F92 !important;
+    }
+    [data-testid^="stBaseButton-primary"]:hover { background: #FF7EA0 !important; }
+    /* 보조 버튼 (완료 항목 지우기 / 취소) */
+    [data-testid^="stBaseButton-secondary"] {
+        background: #FFFFFF !important;
+        color: #FF7EA0 !important;
+        border: 2px solid #FFC2D4 !important;
+        box-shadow: 0 4px 0 #FFE8F0 !important;
+    }
+    /* 아이콘 버튼 (연필 / 휴지통) */
+    [data-testid^="stBaseButton-tertiary"] {
+        font-size: 1.35rem !important;
+        padding: 0.1rem 0.3rem !important;
+        filter: grayscale(0.1);
+    }
+    [data-testid^="stBaseButton-tertiary"]:hover {
+        transform: scale(1.15) rotate(-6deg);
+        background: transparent !important;
+    }
+
+    /* 아이템 카드 */
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        border: 2.5px solid #FFC5D6 !important;
+        border-radius: 20px !important;
+        background: #FFFFFF;
+        box-shadow: 0 4px 0 #FFE0EB;
+        margin-bottom: 6px;
+    }
+    /* 완료된 아이템 카드는 민트빛으로 (:has 지원 브라우저) */
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(input:checked),
+    div[data-testid="stVerticalBlockBorderWrapper"]:has([aria-checked="true"]) {
+        background: #F1FBF6;
+        border-color: #A9E2CC !important;
+        box-shadow: 0 4px 0 #DBF1E8;
+    }
+
+    /* 체크박스 살짝 키우고 동글동글하게 */
+    [data-testid="stCheckbox"] label { font-size: 1.2rem !important; }
+    [data-testid="stCheckbox"] label > span:first-child {
+        transform: scale(1.2);
+        margin-right: 0.5rem;
+        border-radius: 8px !important;
+    }
+
+    /* 진행 바 */
+    [data-testid="stProgress"] p {
+        font-family: 'Jua', sans-serif !important;
+        color: #C08A72 !important;
+        margin-bottom: 0.45rem !important;
+    }
+    [data-testid="stProgress"] > div > div {
+        background: #FFE8F0 !important;
+        border-radius: 999px !important;
+        height: 16px !important;
+        border: 2px solid #FFD6E2;
+    }
+    [data-testid="stProgress"] > div > div > div {
+        background: linear-gradient(90deg, #FFB3C8, #FFD59E) !important;
+        border-radius: 999px !important;
+    }
+
+    /* 안내 박스 (빈 목록) */
+    [data-testid="stAlert"], [data-testid="stAlertContainer"] {
+        border-radius: 20px !important;
+        border: 2.5px dashed #FFC2D4 !important;
+        background: #FFF4F8 !important;
+        color: #C08A72 !important;
+    }
+    [data-testid="stAlert"] p { font-size: 1.15rem !important; color: #C08A72 !important; }
+    [data-testid="stAlert"] svg { display: none; }
+
+    /* 캡션 */
+    [data-testid="stCaptionContainer"] p { font-size: 1.05rem !important; color: #C08A72 !important; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -131,8 +260,10 @@ def clear_done():
 
 
 # --- 헤더 ---
-st.title("🛒 쇼핑 리스트")
-st.caption("필요한 물건을 추가하고, 담을 때마다 체크하세요.")
+st.markdown('<div class="cute-title">🛒 쇼핑 리스트 🎀</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="cute-sub">오늘은 뭘 사러 갈까요? 🧺✨</div>', unsafe_allow_html=True
+)
 
 # --- 아이템 추가 ---
 with st.form("add_form", clear_on_submit=True):
@@ -145,7 +276,7 @@ with st.form("add_form", clear_on_submit=True):
         )
     with col_btn:
         submitted = st.form_submit_button(
-            "추가", use_container_width=True, type="primary"
+            "담기 🧺", use_container_width=True, type="primary"
         )
     if submitted:
         add_item(new_name)
@@ -156,13 +287,13 @@ total = len(cart)
 done = sum(1 for i in cart if i["checked"])
 
 if total:
-    st.progress(done / total, text=f"**{done} / {total}** 항목 완료")
+    st.progress(done / total, text=f"🛍️ {done} / {total} 개 담았어요")
 
 st.write("")
 
 # --- 아이템 목록 ---
 if not cart:
-    st.info("아직 담은 물건이 없어요. 위에서 추가해 보세요. 🧺")
+    st.info("아직 담은 게 없어요! 위에 콕 적어주세요 🐣")
 else:
     # 완료되지 않은 항목을 위로, 완료된 항목을 아래로 (입력 순서는 유지)
     for item in sorted(cart, key=lambda i: i["checked"]):
@@ -235,13 +366,13 @@ else:
     col_summary, col_clear = st.columns([3, 2], vertical_alignment="center")
     with col_summary:
         if done == total:
-            st.caption("🎉 장보기 완료!")
+            st.caption("🎉 다 담았어요! 집에 가도 좋아요 🏡")
         else:
-            st.caption(f"남은 항목 {total - done}개")
+            st.caption(f"앞으로 {total - done}개 더! 🐾")
     with col_clear:
         if done:
             st.button(
-                f"완료 항목 {done}개 지우기",
+                f"완료한 {done}개 치우기 🧹",
                 use_container_width=True,
                 on_click=clear_done,
             )
